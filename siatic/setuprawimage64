@@ -74,7 +74,9 @@ info "Sigue los pasos para hacer funcionar la wifi"
 source <(curl -s https://raw.githubusercontent.com/iesextremadura/sh/master/siatic/setupwifi)
 
 title "07/$STEPS. Montar carpetas del servidor NFS /home"
-info "PUPPET se encarga de esta tarea"
+info "Modificamos el archivo '/etc/nsswitch.conf' para que use la información de montaje que viene al loguear con ldap"
+# https://stackoverflow.com/questions/33419362/sed-command-to-remove-a-line-that-match-an-exact-string-on-first-word
+sed -i -e 's/^automount:      files$/automount:      files ldap/g' /etc/nsswitch.conf && success ||danger
 
 title "08/$STEPS. Configurar el punto de acceso wifi"
 info "Acceder al mismo mediante el navegador en 192.168.0.1. O por ssh -X y abrir firefox en consola."
@@ -136,5 +138,6 @@ update-grub && update-grub && success || danger
 title "14/$STEPS. Enlace a iceweasel"
 info "ln -s /usr/bin/firefox /usr/bin/iceweasel"
 ln -s /usr/bin/firefox /usr/bin/iceweasel && success ||danger
+
 
 
