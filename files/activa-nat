@@ -1,0 +1,92 @@
+#! /bin/sh
+### BEGIN INIT INFO
+# Provides:          activa-nat
+# Required-Start:    $remote_fs
+# Should-Start:      $network $syslog
+# Required-Stop:     $remote_fs
+# Should-Stop:       $network $syslog
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Enabling NAT for clients behind eth1
+# Description:       Enabling Network Address Translation for clients
+#                    sitting in the thin client network behind eth1
+### END INIT INFO
+
+IPTABLES=/sbin/iptables
+
+NETWORK_TO_NAT=192.168.0.0/24
+OUTSIDE_IF=eth1
+
+# Only enable by default if LTSP is installed
+if [ -e /opt/ltsp ] ; then
+    NETWORK_TO_NAT="192.168.0.0/24"
+fi
+
+. /lib/lsb/init-functions
+
+if [ -f /etc/default/activa-nat ] ; then
+    . /etc/default/activa-nat
+fi
+
+# Bail out if no iptables binary or no configuration
+[ -x ${IPTABLES} -a "$NETWORK_TO_NAT" ] || exit 0
+
+do_status() {
+    $IPTABLES -L -t nat |grep -A3 POSTROUTING
+}
+
+is_enabled() {
+    if do_status | grep -q "$NETWORK_TO_NAT" ; then
+	true
+    else
+	false
+    fi
+}
+
+do_start() {
+    if is_enabled ; then
+	log_action_msg "NAT for clients on network $NETWORK_TO_NAT already enabled"
+    else
+	log_action_begin_msg "Enabling NAT for clients on network $NETWORK_TO_NAT."
+	$IPTABLES -t nat -A POSTROUTING -s $NETWORK_TO_NAT -o $OUTSIDE_IF -j MASQUERADE
+	log_action_end_msg $?
+    fi
+
+    # Enable IP-forwarding if it isn't enabled already.
+    if [ 0 = "`cat /proc/sys/net/ipv4/ip_forward`" ]; then
+	log_action_begin_msg "Enabling IPv4 forwarding."
+	echo 1 > /proc/sys/net/ipv4/ip_forward
+	log_action_end_msg $?
+    fi
+}
+
+do_stop() {
+    if is_enabled ; then
+	log_action_begin_msg "Disabling NAT for clients on network $NETWORK_TO_NAT."
+	$IPTABLES -F -t nat
+	log_action_end_msg $?
+    else
+	log_action_msg "NAT for clients on network $NETWORK_TO_NAT already disabled"
+    fi
+}
+
+case "$1" in
+    start)
+        do_start
+        ;;
+    stop)
+        do_stop
+        ;;
+    restart|force-reload)
+        do_stop
+        do_start
+        ;;
+    status)
+        do_status
+        ;;
+    *)
+        echo "Usage: $0 {start|stop|restart|force-reload|status}"
+        exit 2
+        ;;
+esac
+exit 0
