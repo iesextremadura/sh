@@ -1,5 +1,5 @@
-# SOURCE Bashstyling (https://gist.github.com/raultm/c68dca2d076273f569b51653503ead05)
-source <(curl -s https://gist.githubusercontent.com/raultm/c68dca2d076273f569b51653503ead05/raw)
+# SOURCE Bashstyling (https://github.com/iesextremadura/sh/blob/master/styles)
+source <(curl -s https://raw.githubusercontent.com/iesextremadura/sh/master/styles)
 
 h1 "Vamos a preparar el router wifi de una SIATIC"
 info "Indica nombre del aula. Será el SSID de la Wifi. Ej: a19, Infolab, Aula24: "
@@ -73,7 +73,7 @@ sed -i -e 's/INTERFACES=""/INTERFACES="eth0"/g' $DHCPCONF && success ||danger
 title "Archivo activa-nat"
 info "Nos descargamos el archivo a $ACTIVANAT"
 #scp root@$SERVIDOR:$ACTIVANATSERVER $ACTIVANAT
-curl -o $ACTIVANAT 'https://gist.githubusercontent.com/raultm/fad94ab79cb7e50648223a7078426764/raw' && success ||danger
+curl -o $ACTIVANAT 'https://raw.githubusercontent.com/iesextremadura/sh/master/files/activa-nat' && success ||danger
 # CAmbiamos los permisos del fichero
 info "Le cambiamos los permisos a 755"
 chmod 755 $ACTIVANAT && success ||danger
