@@ -24,7 +24,8 @@
 # more details.
 #
 
-source <(curl -s https://gist.githubusercontent.com/raultm/c68dca2d076273f569b51653503ead05/raw)
+# SOURCE Bashstyling (https://github.com/iesextremadura/sh/blob/master/styles)
+source <(curl -s https://raw.githubusercontent.com/iesextremadura/sh/master/styles)
 
 title "El SIATIC va a tener un nombre y un sufijo. Ej: a19-spro, a45-siatic, infolab-pro"
 info "Indica nombre del aula. Ej: a19, Infolab, Aula24: "
@@ -76,7 +77,7 @@ while true; do
     case $yn in
         [Yy]* ) 
 		info "Sigue los pasos para hacer funcionar la wifi"
-		bash <(curl -s https://gist.githubusercontent.com/raultm/f57968501b4f547dae7d2289e38a5794/raw)
+		source <(curl -s https://raw.githubusercontent.com/iesextremadura/sh/master/siatic/setupwifi)
 		break;;
         [Nn]* ) break;;
         * ) echo "Please answer yes or no.";;
@@ -107,7 +108,7 @@ while true; do
     case $yn in
         [Yy]* ) 
 		info "Generar musthave con script de Esteban Navas"
-		curl -s https://gist.githubusercontent.com/raultm/80573a11185b6f0c0503b7fbbe6799c9/raw/e1886be8f7cf49b2ed390d55bfef7738a21d03cc/generatemusthave | bash -s && success || danger #arg1 arg2
+		curl -s https://raw.githubusercontent.com/iesextremadura/sh/master/shared/generatemusthave | bash -s && success || danger #arg1 arg2
 		info "pkgsync"
 		pkgsync && success || danger
 		info "apt-get autoremove"
