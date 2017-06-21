@@ -67,18 +67,9 @@ ifup eth0 && success ||danger
 
 info "¿Ping al router, 192.168.0.1?"
 ping -c 1 192.168.0.0.1 && success "El router recibe ping" ||danger "No hay conexión con el router en 192.168.0.1"
-while true; do
-    read -p "Quieres configurar el punto de accesso wifi?(y/n): " yn
-    case $yn in
-        [Yy]* ) 
-		break;;
-        [Nn]* ) 
-        success "Terminado, sin configurar el punto de acceso"
-        exit 0;;
-        * ) echo "Please answer yes or no.";;
-    esac
-done
 
+
+function setupaccesspoint {
 # Hacer de servidor DHCP en la interfaz eth0
 title "Activar servidor DHCP en eth0"
 info "Marcamos en el fichero $DHCPCONF la interfaz eth0"
@@ -126,4 +117,17 @@ ssh root@192.168.0.1 nvram set wl0_ssid="${AULA}" && success ||danger
 ssh root@192.168.0.1 nvram set wl_ssid="${AULA}" && success ||danger
 
 success "Terminado"
+}
 
+while true; do
+    read -p "Quieres configurar el punto de accesso wifi?(y/n): " yn
+    case $yn in
+        [Yy]* ) 
+		setupaccesspoint
+		break;;
+        [Nn]* ) 
+        success "Terminado, sin configurar el punto de acceso"
+        break;;
+        * ) echo "Please answer yes or no.";;
+    esac
+done
