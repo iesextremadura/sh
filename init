@@ -1,0 +1,57 @@
+#!/bin/bash
+# Permlaink to GIST raw https://gist.github.com/atenni/5604615
+# bash <(curl -s https://raw.githubusercontent.com/iesextremadura/sh/master/init)
+
+# SOURCE Bashstyling (https://github.com/iesextremadura/sh/blob/master/styles)
+source <(curl -s https://raw.githubusercontent.com/iesextremadura/sh/master/styles)
+
+siaticmenu(){
+while :
+do
+h1 "Tareas SIATIC:"
+li "  1) Setup desde clonación de imagen de 64 bits"
+li "  2) Setup Wifi"
+li "  3) Generar archivo musthave para pkgsync"
+li "  x) Exit"
+echo -n "Introduce tu opción:"
+read c
+case $c in
+    "1")
+    bash <(curl -s https://raw.githubusercontent.com/iesextremadura/sh/master/siatic/setuprawimage64)
+    ;;
+    "2")
+    bash <(curl -s https://raw.githubusercontent.com/iesextremadura/sh/master/siatic/setupwifi)
+    ;;
+    "3")
+    bash <(curl -s https://raw.githubusercontent.com/iesextremadura/sh/master/shared/generatemusthave)
+    ;;
+    "x")
+    break
+    ;;
+        *)
+        echo "invalid answer, please try again"
+        ;;
+esac
+done
+}
+
+while :
+do
+h1 "¿La tarea la vas a realizar en...?:"
+li "  1) SIATIC "
+li "  x) Exit"
+echo -n "Introduce tu opción:"
+read choice
+case $choice in
+    "1")
+    siaticmenu
+    ;;
+    "x")
+    exit
+    ;;
+        *)
+        echo "invalid answer, please try again"
+        ;;
+
+esac
+done
