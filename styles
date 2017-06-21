@@ -1,0 +1,57 @@
+#!/bin/bash
+RESTORE=$(echo -en '\033[0m')
+# \033[STYLE;COLORm OR \033[STYLE;BGCOLOR;COLORm
+# STYLES 01:BOLD; 02:LIGHT; 03:???; 04:UNDERLINE; 05:???; 06:INVERSE
+RED=$(echo -en '\033[00;31m')
+GREEN=$(echo -en '\033[00;32m')
+YELLOW=$(echo -en '\033[00;33m')
+BLUE=$(echo -en '\033[00;34m')
+MAGENTA=$(echo -en '\033[00;35m')
+PURPLE=$(echo -en '\033[00;35m')
+CYAN=$(echo -en '\033[00;36m')
+
+h1style=$(echo -en '\033[01;44;33m')
+h2style=$(echo -en '\033[00;44;33m')
+h3style=$(echo -en '\033[02;44;33m')
+listyle=$(echo ${RESTORE})
+titlestyle=$(echo -en '\033[04;33m')
+infostyle=$(echo ${BLUE})
+successstyle=$(echo ${GREEN})
+warningstyle=$(echo ${RESTORE})
+dangerstyle=$(echo ${RED})
+
+function h1 {
+    echo "${h1style}$1${RESTORE}"
+}
+
+function h2 {
+    echo "${h2style}$1${RESTORE}"
+}
+
+function h3 {
+    echo "${h3style}$1${RESTORE}"
+}
+
+function li {
+    echo "${listyle}$1${RESTORE}"
+}
+
+function title {
+    echo "${titlestyle}$1${RESTORE}"
+}
+
+function info {
+    echo "${infostyle}$1${RESTORE}"
+}
+
+function warning {
+    echo "${warningstyle}$1${RESTORE}"
+}
+
+function success {
+    echo "${successstyle}✔ $1${RESTORE}"
+}
+
+function danger {
+    echo "${dangerstyle}✘ $1${RESTORE}"
+}
