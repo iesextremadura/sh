@@ -1,0 +1,113 @@
+# SOURCE Bashstyling (https://gist.github.com/raultm/c68dca2d076273f569b51653503ead05)
+source <(curl -s https://gist.githubusercontent.com/raultm/c68dca2d076273f569b51653503ead05/raw)
+
+h1 "Vamos a preparar el router wifi de una SIATIC"
+info "Indica nombre del aula. Será el SSID de la Wifi. Ej: a19, Infolab, Aula24: "
+read AULA
+
+info "Indica la contraseña del router. Busca en la lista el correo subject:\"[SIATIC] Punto acceso wifi\" del 27/01/16 "
+read -s -p "Password: " ROUTERPASS
+
+SIATICINTERFACESFILE=/etc/network/interfaces.siatic
+DHCPCONF=/etc/default/isc-dhcp-server
+ACTIVANATSERVER=/root/utilidades/activa-nat
+ACTIVANAT=/etc/init.d/activa-nat
+SERVIDOR=servidor # 172.19.122.2
+# Instalar DHCP Server
+title "Instalando isc-dhcp-server/isc-dhcp-server-ldap"
+apt-get install isc-dhcp-server isc-dhcp-server-ldap sshpass && success ||danger
+
+# Añadir lineas a mayhave 
+# en grep, opción -x para comprobar linea completa
+# Evita que encuentre isc-dhcp-server cuando no está pero si isc-dhcp-server-ldap
+title "Añadir los programas instalados al fichero mayhave"
+MAYHAVE=/etc/pkgsync/mayhave
+DHCP=isc-dhcp-server
+LDAP=isc-dhcp-server-ldap
+
+if grep -x -q $DHCP $MAYHAVE; then
+    success "${DHCP} already exists in ${MAYHAVE}"
+else
+    echo $DHCP >> $MAYHAVE && success "Insertado correctamente"|| danger
+fi
+
+if grep -x -q $LDAP $MAYHAVE; then
+    success "${LDAP} already exists in ${MAYHAVE}"
+else
+    echo $LDAP >> $MAYHAVE && success "Insertado correctamente"|| danger
+fi
+
+# Interfaces Configuration
+title "Configurar el archivo /etc/network/interfaces"
+info "Creamos un archivo interfaces.siatic"
+cat > $SIATICINTERFACESFILE << EOF
+auto lo eth0
+iface lo inet loopback
+
+iface eth0 inet static
+     address 192.168.0.254
+     netmask 255.255.255.0
+     broadcast 192.168.0.255
+
+auto eth1
+iface eth1 inet dhcp
+EOF
+
+# Current Interfaces File -> Backup
+info "Hacemos copias de seguridad del actual"
+mv /etc/network/interfaces /etc/network/interfaces.orig && success ||danger
+# Enlace Simbolico del fichero de configuracion creado
+info "Enlace simbólico del interfaces.siatic al interfaces"
+ln -s /etc/network/interfaces.siatic /etc/network/interfaces && success ||danger
+
+# Levantamos la interfaz eth0 para poder acceder a router wifi
+info "Levantamos la interfaz eth0 para poder acceder a router wifi"
+ifup eth0 && success ||danger
+
+# Hacer de servidor DHCP en la interfaz eth0
+title "Activar servidor DHCP en eth0"
+info "Marcamos en el fichero $DHCPCONF la interfaz eth0"
+sed -i -e 's/INTERFACES=""/INTERFACES="eth0"/g' $DHCPCONF && success ||danger
+
+# Copiamos el archivo activa-nat
+title "Archivo activa-nat"
+info "Nos descargamos el archivo a $ACTIVANAT"
+#scp root@$SERVIDOR:$ACTIVANATSERVER $ACTIVANAT
+curl -o $ACTIVANAT 'https://gist.githubusercontent.com/raultm/fad94ab79cb7e50648223a7078426764/raw' && success ||danger
+# CAmbiamos los permisos del fichero
+info "Le cambiamos los permisos a 755"
+chmod 755 $ACTIVANAT && success ||danger
+# Activamos activanat
+info "Activamos el servicio activa-nat"
+update-rc.d activa-nat defaults && success ||danger
+invoke-rc.d activa-nat start && success ||danger
+
+title "Configurar DHCP para que use LDAP del centro"
+# Copia de seguridad del dhcpd.conf
+info "Copia de seguridad del fichero actual"
+mv /etc/dhcp/dhcpd.conf /etc/dhcp/dhcpd.conf.old && success ||danger
+# DHCPD Conf con configuracion ldap
+info "La configuracion con LDAP"
+cat > /etc/dhcp/dhcpd.conf << EOF
+ldap-server="ldap";
+ldap-port 389;
+ldap-base-dn "dc=instituto,dc=extremadura,dc=es";
+ldap-dhcp-server-cn "ldap";
+ldap-method dynamic;
+ddns-update-style none;
+EOF
+
+title "Setup del router"
+# Relación de confianza con Router (root/T******1)
+info "Vamos a generar un certificado y una relación de confianza para poder acceder al router"
+info "La primera vez te pedirá la contraseña del router. Busca en la lista el correo subject:\"[SIATIC] Punto acceso wifi\" del 27/01/16 "
+ssh-keygen && success ||danger
+sshpass -p $ROUTERPASS ssh-copy-id root@192.168.0.1 && success ||danger
+
+# Poner SSID
+# nvram man page https://www.dd-wrt.com/wiki/index.php/Hardware
+info "Una vez creada la relación ponemos el SSID que hemos marcado"
+ssh root@192.168.0.1 nvram set wl0_ssid="${AULA}" && success ||danger
+ssh root@192.168.0.1 nvram set wl_ssid="${AULA}" && success ||danger
+
+success "Terminado"
