@@ -65,6 +65,21 @@ ln -s /etc/network/interfaces.siatic /etc/network/interfaces && success ||danger
 info "Levantamos la interfaz eth0 para poder acceder a router wifi"
 ifup eth0 && success ||danger
 
+info "¿Ping al router, 192.168.0.1?"
+ping -c 1 192.168.0.0.1 && success "El router recibe ping" ||danger "No hay conexión con el router en 192.168.0.1"
+while true; do
+    read -p "Quieres configurar el punto de accesso wifi?(y/n): " yn
+    case $yn in
+        [Yy]* ) 
+#		info "Sigue los pasos para hacer funcionar la wifi"
+		break;;
+        [Nn]* ) 
+        success "Terminado, sin configurar el punto de acceso"
+        exit;;
+        * ) echo "Please answer yes or no.";;
+    esac
+done
+
 # Hacer de servidor DHCP en la interfaz eth0
 title "Activar servidor DHCP en eth0"
 info "Marcamos en el fichero $DHCPCONF la interfaz eth0"
