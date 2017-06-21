@@ -53,7 +53,7 @@ info "Cambiar $HOSTNAMEFILE por $AULA-$SUFIX"
 echo "$AULA-$SUFIX" > $HOSTNAMEFILE && success || danger
 info "En archivo /etc/hosts referencia de 127.0.0.1 a $AULA-$SUFIX"
 #sed -i -e "s/127.0.0.1       comodin/127.0.0.1       $AULA-$SUFIX/g" $HOSTSFILE && success || danger
-sed -i '2s/.*/127.0.0.1       $AULA-$SUFIX/g' $HOSTSFILE && success || danger
+sed -i "2s/.*/127.0.0.1       ${AULA}-${SUFIX}/g" $HOSTSFILE && success || danger
 
 title "03/$STEPS. Cambiar el acceso SSH para permitir acceso directamente al root"
 info "Viene ya por defecto en imagen de 64 bits"
