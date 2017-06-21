@@ -71,59 +71,59 @@ while true; do
     read -p "Quieres configurar el punto de accesso wifi?(y/n): " yn
     case $yn in
         [Yy]* ) 
-#		info "Sigue los pasos para hacer funcionar la wifi"
+		# Hacer de servidor DHCP en la interfaz eth0
+		title "Activar servidor DHCP en eth0"
+		info "Marcamos en el fichero $DHCPCONF la interfaz eth0"
+		sed -i -e 's/INTERFACES=""/INTERFACES="eth0"/g' $DHCPCONF && success ||danger
+
+		# Copiamos el archivo activa-nat
+		title "Archivo activa-nat"
+		info "Nos descargamos el archivo a $ACTIVANAT"
+		#scp root@$SERVIDOR:$ACTIVANATSERVER $ACTIVANAT
+		curl -o $ACTIVANAT 'https://raw.githubusercontent.com/iesextremadura/sh/master/files/activa-nat' && success ||danger
+		# CAmbiamos los permisos del fichero
+		info "Le cambiamos los permisos a 755"
+		chmod 755 $ACTIVANAT && success ||danger
+		# Activamos activanat
+		info "Activamos el servicio activa-nat"
+		update-rc.d activa-nat defaults && success ||danger
+		invoke-rc.d activa-nat start && success ||danger
+
+		title "Configurar DHCP para que use LDAP del centro"
+		# Copia de seguridad del dhcpd.conf
+		info "Copia de seguridad del fichero actual"
+		mv /etc/dhcp/dhcpd.conf /etc/dhcp/dhcpd.conf.old && success ||danger
+		# DHCPD Conf con configuracion ldap
+		info "La configuracion con LDAP"
+		cat > /etc/dhcp/dhcpd.conf << EOF
+		ldap-server="ldap";
+		ldap-port 389;
+		ldap-base-dn "dc=instituto,dc=extremadura,dc=es";
+		ldap-dhcp-server-cn "ldap";
+		ldap-method dynamic;
+		ddns-update-style none;
+		EOF
+
+		title "Setup del router"
+		# Relación de confianza con Router (root/T******1)
+		info "Vamos a generar un certificado y una relación de confianza para poder acceder al router"
+		info "La primera vez te pedirá la contraseña del router. Busca en la lista el correo subject:\"[SIATIC] Punto acceso wifi\" del 27/01/16 "
+		ssh-keygen && success ||danger
+		sshpass -p $ROUTERPASS ssh-copy-id root@192.168.0.1 && success ||danger
+
+		# Poner SSID
+		# nvram man page https://www.dd-wrt.com/wiki/index.php/Hardware
+		info "Una vez creada la relación ponemos el SSID que hemos marcado"
+		ssh root@192.168.0.1 nvram set wl0_ssid="${AULA}" && success ||danger
+		ssh root@192.168.0.1 nvram set wl_ssid="${AULA}" && success ||danger
+
+		success "Terminado"
 		break;;
         [Nn]* ) 
         success "Terminado, sin configurar el punto de acceso"
-        exit;;
+        break;;
         * ) echo "Please answer yes or no.";;
     esac
 done
 
-# Hacer de servidor DHCP en la interfaz eth0
-title "Activar servidor DHCP en eth0"
-info "Marcamos en el fichero $DHCPCONF la interfaz eth0"
-sed -i -e 's/INTERFACES=""/INTERFACES="eth0"/g' $DHCPCONF && success ||danger
 
-# Copiamos el archivo activa-nat
-title "Archivo activa-nat"
-info "Nos descargamos el archivo a $ACTIVANAT"
-#scp root@$SERVIDOR:$ACTIVANATSERVER $ACTIVANAT
-curl -o $ACTIVANAT 'https://raw.githubusercontent.com/iesextremadura/sh/master/files/activa-nat' && success ||danger
-# CAmbiamos los permisos del fichero
-info "Le cambiamos los permisos a 755"
-chmod 755 $ACTIVANAT && success ||danger
-# Activamos activanat
-info "Activamos el servicio activa-nat"
-update-rc.d activa-nat defaults && success ||danger
-invoke-rc.d activa-nat start && success ||danger
-
-title "Configurar DHCP para que use LDAP del centro"
-# Copia de seguridad del dhcpd.conf
-info "Copia de seguridad del fichero actual"
-mv /etc/dhcp/dhcpd.conf /etc/dhcp/dhcpd.conf.old && success ||danger
-# DHCPD Conf con configuracion ldap
-info "La configuracion con LDAP"
-cat > /etc/dhcp/dhcpd.conf << EOF
-ldap-server="ldap";
-ldap-port 389;
-ldap-base-dn "dc=instituto,dc=extremadura,dc=es";
-ldap-dhcp-server-cn "ldap";
-ldap-method dynamic;
-ddns-update-style none;
-EOF
-
-title "Setup del router"
-# Relación de confianza con Router (root/T******1)
-info "Vamos a generar un certificado y una relación de confianza para poder acceder al router"
-info "La primera vez te pedirá la contraseña del router. Busca en la lista el correo subject:\"[SIATIC] Punto acceso wifi\" del 27/01/16 "
-ssh-keygen && success ||danger
-sshpass -p $ROUTERPASS ssh-copy-id root@192.168.0.1 && success ||danger
-
-# Poner SSID
-# nvram man page https://www.dd-wrt.com/wiki/index.php/Hardware
-info "Una vez creada la relación ponemos el SSID que hemos marcado"
-ssh root@192.168.0.1 nvram set wl0_ssid="${AULA}" && success ||danger
-ssh root@192.168.0.1 nvram set wl_ssid="${AULA}" && success ||danger
-
-success "Terminado"
