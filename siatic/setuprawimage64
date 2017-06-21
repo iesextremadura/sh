@@ -1,0 +1,147 @@
+#!/bin/bash
+#
+# name                : setupsiatic
+# description         : Prepara una SIATIC paso por paso usando puntos del documento colaborativo
+# author              : Raúl Tierno
+# creation            : 09062017
+# last modification   : 09062017
+# uso                 : setupsiatic a19 
+# install             : Save in /usr/local/sbin/
+# suggestion          : Use after install official image of SIATIC 64Bits
+
+#
+# Copyright 2017, Raúl Tierno Magro <raultm@gmail.com>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License at <http://www.gnu.org/licenses/> for
+# more details.
+#
+
+source <(curl -s https://gist.githubusercontent.com/raultm/c68dca2d076273f569b51653503ead05/raw)
+
+title "El SIATIC va a tener un nombre y un sufijo. Ej: a19-spro, a45-siatic, infolab-pro"
+info "Indica nombre del aula. Ej: a19, Infolab, Aula24: "
+read AULA
+
+
+info "Indica el sufijo para el SIATIC: Ej: spro, pro, siatic"
+read SUFIX
+
+info "Vamos a preparar el ordenador $AULA-$SUFIX"
+
+LOGFILE="./setupsiatic.log"
+
+HOSTNAMEFILE="/etc/hostname"
+HOSTSFILE="/etc/hosts"
+
+STEPS=16
+
+title "01/$STEPS. Cambiar contraseña de root"
+info "Vamos a cambiar la contraseña de root usando passwd"
+passwd && success ||danger
+
+title "02/$STEPS. Cambiar nombre del servidor de aula."
+info "Cambiar $HOSTNAMEFILE por $AULA-$SUFIX"
+echo "$AULA-$SUFIX" > $HOSTNAMEFILE && success || danger
+info "En archivo /etc/hosts referencia de 127.0.0.1 a $AULA-$SUFIX"
+#sed -i -e "s/127.0.0.1       comodin/127.0.0.1       $AULA-$SUFIX/g" $HOSTSFILE && success || danger
+sed -i '2s/.*/127.0.0.1       $AULA-$SUFIX/g' $HOSTSFILE && success || danger
+
+title "03/$STEPS. Cambiar el acceso SSH para permitir acceso directamente al root"
+info "Viene ya por defecto en imagen de 64 bits"
+
+title "04/$STEPS. Dar de alta el equipo en ldap."
+ETH1_MAC=$(cat /sys/class/net/eth1/address)
+info "Si en eth1 no está 50:XX... cambiar en /etc/udev/rules.d/70-persistent-net.rules"
+info "MAC of eth1: $ETH1_MAC"
+info "En controlies http://servidor/controlies añadir $AULA-$SUFIX con $ETH1_MAC"
+info "Habia un script para esto. http://172.19.246.2/pub/addltsp-server.sh"
+danger "Realizar paso manualmente. En http://servidor/controlies añadir $AULA-$SUFIX con $ETH1_MAC"
+
+title "05/$STEPS. Añadir poweroff en crontab"
+info "PUPPET se encarga de esta tarea"
+
+title "06/$STEPS. Activar Red Wifi"
+info "¿Ping al router, 192.168.0.1?"
+ping -c 1 192.168.0.0.1 && success "El router recibe ping" ||danger "No hay conexión con el router en 192.168.0.1"
+while true; do
+    read -p "Quieres configurar el punto de accesso wifi?(y/n): " yn
+    case $yn in
+        [Yy]* ) 
+		info "Sigue los pasos para hacer funcionar la wifi"
+		bash <(curl -s https://gist.githubusercontent.com/raultm/f57968501b4f547dae7d2289e38a5794/raw)
+		break;;
+        [Nn]* ) break;;
+        * ) echo "Please answer yes or no.";;
+    esac
+done
+
+
+
+title "07/$STEPS. Montar carpetas del servidor NFS /home"
+info "PUPPET se encarga de esta tarea"
+
+title "08/$STEPS. Configurar el punto de acceso wifi"
+info "Acceder al mismo mediante el navegador en 192.168.0.1. O por ssh -X y abrir firefox en consola."
+
+title "09/$STEPS. Instalar reproductores multimedia y montaje DVD,, etc…."
+info "En proceso..."
+danger "En proceso"
+
+title "10/$STEPS. Configurar pkgsync"
+info "puppet agent -t #se ajustará /etc/escuela2.0 con tipo=siatic y otras tareas"
+puppet agent -tv
+info "puppet agent -t #ejecuto otra vez para terminar de ejecutar tareas referidas a siatic"
+puppet agent -tv
+info "Asegurarse que los paquetes unity están desinstalados. Este comando no debería dar ninguna salida:dpkg -l | /bin/grep -w unity|tr -s ' ' |/bin/grep ^ii"
+info "Ahora ya sí: Para que funciona pkgsync tenemos que crear el fichero musthave con los paquete que hay en el equipo para ello utilizo el script de Esteban Navas"
+while true; do
+    read -p "Quiere generar musthave y ejecutar 'pkgsync' y 'apt-get autoremove' ahora?(y/n): " yn
+    case $yn in
+        [Yy]* ) 
+		info "Generar musthave con script de Esteban Navas"
+		curl -s https://gist.githubusercontent.com/raultm/80573a11185b6f0c0503b7fbbe6799c9/raw/e1886be8f7cf49b2ed390d55bfef7738a21d03cc/generatemusthave | bash -s && success || danger #arg1 arg2
+		info "pkgsync"
+		pkgsync && success || danger
+		info "apt-get autoremove"
+		apt-get autoremove && success || danger
+		break;;
+        [Nn]* ) break;;
+        * ) echo "Please answer yes or no.";;
+    esac
+done
+#info "pkgsync"
+#pkgsync && success || danger
+#info "apt-get autoremove"
+#apt-get autoremove && success || danger
+
+
+title "11/$STEPS. Instalar impresoras"
+info "No estandarizable"
+
+title "12/$STEPS. Ocultar el grub"
+info "Para esconder el grub completamente editamos el fichero /etc/default/grub y descomentamos las lineas:"
+##GRUB_HIDDEN_TIMEOUT=0
+#GRUB_HIDDEN_TIMEOUT_QUIET=true
+#GRUB_TIMEOUT=10
+info "    -GRUB_HIDDEN_TIMEOUT=0"
+sed -i -e "s/#GRUB_HIDDEN_TIMEOUT=0/GRUB_HIDDEN_TIMEOUT=0/g" $HOSTSFILE && success || danger
+info "    -GRUB_TIMEOUT =0"
+sed -i -e "s/GRUB_TIMEOUT=10/GRUB_TIMEOUT=0/g" $HOSTSFILE && success || danger
+info "update-grub && update-grub2"
+update-grub && update-grub && success || danger
+
+title "13/$STEPS. Enlace a iceweasel"
+info "ln -s /usr/bin/firefox /usr/bin/iceweasel"
+ln -s /usr/bin/firefox /usr/bin/iceweasel && success ||danger
+
+title "14/$STEPS. Desactivar la petición de usuario-contraseña cuando el monitor se apaga."
+info "apt-get remove light-locker"
+apt-get remove light-locker && success || danger
