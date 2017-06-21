@@ -1,3 +1,4 @@
+#!/bin/bash
 # SOURCE Bashstyling (https://github.com/iesextremadura/sh/blob/master/styles)
 source <(curl -s https://raw.githubusercontent.com/iesextremadura/sh/master/styles)
 
