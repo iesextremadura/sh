@@ -12,6 +12,7 @@ h1 "Tareas SIATIC:"
 li "  1) Setup desde clonación de imagen de 64 bits"
 li "  2) Setup Wifi"
 li "  3) Generar archivo musthave para pkgsync"
+li "  4) Actualizar Pandectas"
 li "  x) Exit"
 echo -n "Introduce tu opción:"
 read c
@@ -24,6 +25,9 @@ case $c in
     ;;
     "3")
     bash <(curl -s https://raw.githubusercontent.com/iesextremadura/sh/master/shared/generatemusthave)
+    ;;
+    "4")
+    bash <(curl -s https://raw.githubusercontent.com/iesextremadura/sh/master/siatic/updatepandectas)
     ;;
     "x")
     break
