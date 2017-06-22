@@ -82,8 +82,15 @@ title "08/$STEPS. Configurar el punto de acceso wifi"
 info "Acceder al mismo mediante el navegador en 192.168.0.1. O por ssh -X y abrir firefox en consola."
 
 title "09/$STEPS. Instalar reproductores multimedia y montaje DVD,, etc…."
-info "En proceso..."
-danger "En proceso"
+info "Añadir linea a 'etc/fstab' para que al montar lector de CD externo se monte con permisos correctos"
+grep -q -F '/dev/sr0        /media/cdrom0   udf,iso9660 user,noauto     0       0' /etc/fstab || echo '/dev/sr0        /media/cdrom0   udf,iso9660 user,noauto     0       0' >> /etc/fstab
+info "Instalar libdvdcss para que se puedan reproducir DVD originales sin problemas"
+echo "deb http://download.videolan.org/pub/debian/stable/ /" | sudo tee /etc/apt/sources.list.d/libdvdcss.list;sudo wget -O - http://download.videolan.org/pub/debian/videolan-apt.asc | sudo apt-key add -;sudo apt-get update;sudo apt-get install libdvdcss2;
+info "Instalar Flash Player"
+apt-get install flashplugin-installer
+info "Cambiar totem por vlc en programa por defecto para archivos de video"
+sed  -i  's/totem/vlc/g' /etc/gnome/defaults.list && success ||danger
+
 
 title "10/$STEPS. Desactivar la petición de usuario-contraseña cuando el monitor se apaga."
 info "apt-get remove light-locker"
@@ -129,11 +136,11 @@ info "Para esconder el grub completamente editamos el fichero /etc/default/grub 
 #GRUB_HIDDEN_TIMEOUT_QUIET=true
 #GRUB_TIMEOUT=10
 info "    -GRUB_HIDDEN_TIMEOUT=0"
-sed -i -e "s/#GRUB_HIDDEN_TIMEOUT=0/GRUB_HIDDEN_TIMEOUT=0/g" $HOSTSFILE && success || danger
+sed -i -e "s/#GRUB_HIDDEN_TIMEOUT=0/GRUB_HIDDEN_TIMEOUT=0/g" /etc/default/grub && success || danger
 info "    -GRUB_TIMEOUT =0"
-sed -i -e "s/GRUB_TIMEOUT=10/GRUB_TIMEOUT=0/g" $HOSTSFILE && success || danger
+sed -i -e "s/GRUB_TIMEOUT=10/GRUB_TIMEOUT=0/g" /etc/default/grub && success || danger
 info "update-grub && update-grub2"
-update-grub && update-grub && success || danger
+update-grub && update-grub2 && success || danger
 
 title "14/$STEPS. Enlace a iceweasel"
 info "ln -s /usr/bin/firefox /usr/bin/iceweasel"
