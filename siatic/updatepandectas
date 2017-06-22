@@ -1,0 +1,9 @@
+#!/bin/bash
+# SOURCE Bashstyling (https://github.com/iesextremadura/sh/blob/master/styles)
+source <(curl -s https://raw.githubusercontent.com/iesextremadura/sh/master/styles)
+
+h1 "Vamos a instalar la version 1.4-40 de Pandectas"
+info "Primero la descarga... "
+wget http://iespruebas.educarex.es/pandectas/pandectas_1.4-40_amd64.deb && success||danger
+info "Pasamos a la instalación"
+dpkg -i pandectas_1.4-40_amd64.deb && success||danger
