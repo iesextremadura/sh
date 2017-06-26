@@ -98,8 +98,8 @@ info "En el documento está en la posición 14, pero al hacerlo antes del genera
 apt-get remove light-locker && success || danger
 
 title "11/$STEPS. Configurar pkgsync"
-info "Borramos los certificados que pudiera tener 'rm -rf /var/lib/puppet/ssl'"
-sudo rm -rf /var/lib/puppet/ssl && success ||danger
+#info "Borramos los certificados que pudiera tener 'rm -rf /var/lib/puppet/ssl'"
+#sudo rm -rf /var/lib/puppet/ssl && success ||danger
 info "puppet agent -t #se ajustará /etc/escuela2.0 con tipo=siatic y otras tareas"
 puppet agent -tv
 info "puppet agent -t #ejecuto otra vez para terminar de ejecutar tareas referidas a siatic"
