@@ -1,0 +1,20 @@
+#!/bin/bash
+# Permite ejecutar un comando en remoto en un grupo de maquinas que compartan nombre de host 
+# pero esten secuenciadas por numero
+#
+# Raul Tierno Magro
+# raultm@gmail.com
+# 06/10/2017
+# Last modification: 06/10/2017
+# 1st param: hostname pattern
+# 2nd param: from (number)
+# 3rd param: to (number)
+# 4th param: password of the machines
+# 5th param: cmd to execute
+# Example "massivecommand infolab-o 1 30 password 'dpkg -l | grep lyx'" 
+for i in {$2..$3}
+do
+   i=`printf %02d $i` # Si es de un digito añadimos cero a la izquierda
+   echo "infolab-o$i"
+   sshpass -p$4 ssh -oStrictHostkeyChecking=no root@$1$i $5
+done
