@@ -12,9 +12,12 @@
 # 4th param: password of the machines
 # 5th param: cmd to execute
 # Example "massivecommand infolab-o 1 30 password 'dpkg -l | grep lyx'" 
-for i in {$2..$3}
+FROM=$2
+TO=$3
+
+for i in $(eval echo {$FROM..$TO})
 do
    i=`printf %02d $i` # Si es de un digito añadimos cero a la izquierda
-   echo "infolab-o$i"
+   echo $1$i
    sshpass -p$4 ssh -oStrictHostkeyChecking=no root@$1$i $5
 done
