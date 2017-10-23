@@ -19,6 +19,7 @@ fi
 h1 "2. Actualizamos apt"
 apt-get update
 
+h1 "3. Comprobamos si el plugin está instalado"
 if "dpkg -l adobe-flashplugin"
 then 
     info "Ya está instalado"
