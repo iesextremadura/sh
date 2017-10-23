@@ -19,7 +19,7 @@ h1 "2. Actualizamos apt"
 apt-get -qq update
 
 h1 "3. Comprobamos si el plugin está instalado"
-if "dpkg -l adobe-flashplugin"
+if dpkg -l adobe-flashplugin
 then 
     success "Ya está instalado"
 else
