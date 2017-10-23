@@ -4,17 +4,27 @@ source <(curl -s https://raw.githubusercontent.com/iesextremadura/sh/master/styl
 
 h1 "Vamos a instalar el plugin de adobe para Ubuntu 14.04"
 
-h1 "Vamos a comprobar que existe el repositorio en el sources.list"
-info "Indica nombre del aula. Será el SSID de la Wifi. Ej: a19, Infolab, Aula24: "
+h1 "1. Vamos a comprobar que existe el repositorio en el sources.list"
 if grep -Fxq "deb http://archive.canonical.com/ubuntu trusty partner" /etc/apt/sources.list
 then
     # code if found
-    info "Existe el repositorio"
+    info "Existe el repositorio. No hacemos nada."
 else
     # code if not found
-    info "No existe el repositorio en el sources.list"
+    info "No existe el repositorio en el sources.list. Procedemos a añadirlo"
     echo "deb http://archive.canonical.com/ubuntu trusty partner" >> /etc/apt/sources.list
     apt-get update
 fi
 
-apt-get --yes --force-yes install adobe-flashplugin
+h1 "2. Actualizamos apt"
+apt-get update
+
+if "dpkg -l adobe-flashplugin"
+then 
+    info "Ya está instalado"
+else
+    info "No está instalado. Procedemos a la instalación"
+    apt-get --yes --force-yes install adobe-flashplugin
+fi
+
+
