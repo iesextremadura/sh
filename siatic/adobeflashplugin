@@ -8,10 +8,10 @@ h1 "1. Vamos a comprobar que existe el repositorio en el sources.list"
 if grep -Fxq "deb http://archive.canonical.com/ubuntu trusty partner" /etc/apt/sources.list
 then
     # code if found
-    info "Existe el repositorio. No hacemos nada."
+    success "Existe el repositorio. No hacemos nada."
 else
     # code if not found
-    info "No existe el repositorio en el sources.list. Procedemos a añadirlo"
+    danger "No existe el repositorio en el sources.list. Procedemos a añadirlo"
     echo "deb http://archive.canonical.com/ubuntu trusty partner" >> /etc/apt/sources.list
     apt-get update
 fi
@@ -22,9 +22,9 @@ apt-get update
 h1 "3. Comprobamos si el plugin está instalado"
 if "dpkg -l adobe-flashplugin"
 then 
-    info "Ya está instalado"
+    success "Ya está instalado"
 else
-    info "No está instalado. Procedemos a la instalación"
+    danger "No está instalado. Procedemos a la instalación"
     apt-get --yes --force-yes install adobe-flashplugin
 fi
 
