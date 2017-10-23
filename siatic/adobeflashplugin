@@ -2,9 +2,19 @@
 # SOURCE Bashstyling (https://github.com/iesextremadura/sh/blob/master/styles)
 source <(curl -s https://raw.githubusercontent.com/iesextremadura/sh/master/styles)
 
-h1 "Vamos a instalar el plugin de adobe para Ubuntu 14.04"
+h1 "Comprobamos que el plugin de adobe-flashplugin está instalado"
 
-h1 "1. Vamos a comprobar que existe el repositorio en el sources.list"
+h1 "1. Comprobamos si el plugin está instalado"
+if dpkg -l adobe-flashplugin
+then 
+    success "Ya está instalado"
+    exit 0
+else
+    danger "No está instalado. Procedemos a la instalación"
+fi
+
+
+h1 "2. Vamos a comprobar que existe el repositorio en el sources.list"
 if grep -Fxq "deb http://archive.canonical.com/ubuntu trusty partner" /etc/apt/sources.list
 then
     # code if found
@@ -15,16 +25,18 @@ else
     echo "deb http://archive.canonical.com/ubuntu trusty partner" >> /etc/apt/sources.list
 fi
 
-h1 "2. Actualizamos apt"
+h1 "3. Actualizamos apt"
 apt-get -qq update
 
-h1 "3. Comprobamos si el plugin está instalado"
+h1 "4. Instalamos el componente"
+apt-get --yes --force-yes install adobe-flashplugin
 if dpkg -l adobe-flashplugin
 then 
-    success "Ya está instalado"
+    success "Se ha instalado correctamente"
+    exit 0
 else
-    danger "No está instalado. Procedemos a la instalación"
-    apt-get --yes --force-yes install adobe-flashplugin
+    danger "No está instalado. Error en la instalación"
+    exit 1
 fi
 
 
