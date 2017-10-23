@@ -1,0 +1,16 @@
+#!/bin/bash
+# SOURCE Bashstyling (https://github.com/iesextremadura/sh/blob/master/styles)
+source <(curl -s https://raw.githubusercontent.com/iesextremadura/sh/master/styles)
+
+h1 "Vamos a instalar el plugin de adobe para Ubuntu 14.04"
+
+h1 "Vamos a comprobar que existe el repositorio en el sources.list"
+info "Indica nombre del aula. Será el SSID de la Wifi. Ej: a19, Infolab, Aula24: "
+if grep -Fxq "deb http://archive.canonical.com/ubuntu trusty partner" /etc/apt/sources.list
+then
+    # code if found
+    info "Existe el repositorio"
+else
+    # code if not found
+    info "No existe el repositorio en el sources.list"
+fi
