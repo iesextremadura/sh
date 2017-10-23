@@ -13,7 +13,6 @@ else
     # code if not found
     danger "No existe el repositorio en el sources.list. Procedemos a añadirlo"
     echo "deb http://archive.canonical.com/ubuntu trusty partner" >> /etc/apt/sources.list
-    apt-get update
 fi
 
 h1 "2. Actualizamos apt"
