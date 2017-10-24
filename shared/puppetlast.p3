@@ -1,0 +1,88 @@
+#!/usr/bin/env python3
+#########################################################################################################
+# -*- coding: utf-8 -*-
+# Project:      puppetlast
+# Module:       puppetlast
+# Purpose:      Gets info about last sinchronization date via puppet from /var/lib/puppet/yaml/facts certs
+# Language:     Python 2.7
+# Date:         4-May-2012.
+# Ver:          21-Nov-2016.
+# Authors:       https://github.com/gregarmer/puppetlast & Victor Martinez Pajares
+#
+# What's New:
+#   21-Nov-2016: Extract hostname from yaml parameters and not from filename
+#   17-Feb-2017: Converted to python3 and standard PEP8
+#########################################################################################################
+
+import glob
+import os
+
+from datetime import datetime, timedelta
+
+
+def humanize(delta):
+    days = delta.days
+    hours = delta.seconds // 3600
+    minutes = delta.seconds % 3600 // 60
+    seconds = delta.seconds % 3600 % 60
+    
+    humanized_delta = ""
+    if days > 0:
+        if days == 1:
+            end_str = "day"
+        else:
+            end_str = "days"
+        humanized_delta += "%s %s" % (days, end_str)
+    elif hours > 0:
+        if hours == 1:
+            end_str = "hour"
+        else:
+            end_str = "hours"
+        humanized_delta += "%s %s" % (hours, end_str)
+    elif minutes > 0:
+        if minutes == 1:
+            end_str = "min"
+        else:
+            end_str = "mins"
+        humanized_delta += "%s %s" % (minutes, end_str)
+    elif seconds > 0:
+        if seconds == 1:
+            end_str = "sec"
+        else:
+            end_str = "secs"
+        humanized_delta += "%s %s" % (seconds, end_str)
+    return humanized_delta
+
+
+def get_puppetlast():
+    hosts = []
+    for f in glob.glob("/var/lib/puppet/yaml/facts/*"):
+        with open(f) as yaml:
+            for line in yaml:
+                if 'hostname' in line:
+                    host = line.split(':')[-1].strip()
+                    last = datetime.now() - datetime.fromtimestamp(os.stat(f)[9])
+                    hosts.append((humanize(last), host, last))
+    return sorted(hosts, key=lambda x: x[2])  # the hosts sorted by 3º field(last)
+
+
+def print_puppetlast():
+    hosts = get_puppetlast()
+    red = '\033[91m'
+    green = '\033[92m'
+    orange = '\033[93m'
+    reset = '\033[0m'
+
+    for host in reversed(hosts):
+        if host[2] < timedelta(hours=24):
+            color = green
+        elif host[2] < timedelta(hours=239):
+            color = orange
+        else:
+            color = red
+        print(color, "%10s ago: %s" % (host[0], host[1]), reset)
+
+    print("\n Total certificados: "+str(len(hosts)))
+
+if __name__ == "__main__":
+    print_puppetlast()
